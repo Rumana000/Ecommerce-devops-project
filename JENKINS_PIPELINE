@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+    stages {
+        stage('Download Source Code') {
+            steps {
+                git 'https://github.com/example-user/java-project.git'
+            }
+        }
+
+        stage('Build with Maven') {
+            steps {
+                sh 'mvn package'
+            }
+        }
+
+        stage('Create Docker Image') {
+            steps {
+                sh 'cp target/webapp.war .'
+                sh ''' 
+                cat > Dockerfile <<EOF
+                FROM tomee
+                COPY webapp.war /usr/local/tomee/webapps/myapp.war
+                EOF
+                '''
+                sh 'docker build -t myrepo/mavenapp .'
+            }
+        }
+
+        stage('Push Docker Image to Registry') {
+            steps {
+                sh 'docker push myrepo/mavenapp'
+            }
+        }
+
+        stage('Deploy Docker Container to QA Servers') {
+            steps {
+                sh 'ssh user@ansible-controller ansible-playbook /path/to/playbook.yml -b'
+            }
+        }
+
+        stage('Download and Execute Selenium Tests') {
+            steps {
+                git 'https://github.com/example-user/selenium-tests.git'
+                sh 'java -jar tests/selenium-tests.jar'
+            }
+        }
+
+        stage('Deploy to Kubernetes Cluster') {
+            steps {
+                sh 'ssh user@k8s-master kubectl apply -f /path/to/k8s-deployment.yml'
+            }
+        }
+    }
+}
