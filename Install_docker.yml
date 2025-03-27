@@ -1,0 +1,18 @@
+---
+# This Ansible playbook is executed from the Ansible Controller
+# It installs Docker on the managed nodes
+
+- name: Install Docker and required components
+  hosts: managed_nodes
+  tasks:
+    - name: Install python-pip
+      apt:
+        name: python3-pip
+        state: present
+        update_cache: yes
+    - name: Install Docker and dependencies
+      shell: "{{item}}"
+      with_items:
+        - curl -fsSL https://get.docker.com -o install-docker.sh
+        - sh install-docker.sh
+        - pip3 install docker-py
