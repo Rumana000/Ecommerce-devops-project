@@ -1,0 +1,13 @@
+---
+- name: Deploy Customized Image into Multiple QA Servers
+  hosts: managed_nodes
+  become: yes  # Run as sudo
+  tasks:
+    - name: Create a Docker container
+      docker_container:
+        name: myapp
+        image: myrepo/mavenapp
+        state: started
+        restart_policy: always
+        ports:
+          - "9090:8080"
